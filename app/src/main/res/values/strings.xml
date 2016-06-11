@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GaraApp</string>
+    <string name="app_name">Gara</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
@@ -13,4 +13,21 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email completions."</string>
     <string name="title_activity_rerister">Rerister</string>
     <string name="title_activity_maps">Map</string>
+    <string name="login">login</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="title_activity_login">Login</string>
+    <string name="title_activity_register">Register</string>
+    <string name="createAccount">Create Account</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="name">Name</string>
+    <string name="register">Register</string>
+    <string name="alreadyMember">Already a member? Login</string>
+    <string name="phoneNumber">Phone Number</string>
+    <string name="GaraHome">Home</string>
 </resources>

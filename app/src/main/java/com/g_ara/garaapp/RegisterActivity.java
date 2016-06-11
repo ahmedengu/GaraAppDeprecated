@@ -3,20 +3,16 @@ package com.g_ara.garaapp;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-
+import android.widget.*;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
-import com.android.volley.Request.Method;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,104 +20,93 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-
-
-import static android.Manifest.permission.READ_CONTACTS;
-
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends Activity {
+public class RegisterActivity extends Activity {
+
     private static final String TAG = RegisterActivity.class.getSimpleName();
 
     // UI references.
     private EditText mUsernameView;
     private EditText mPasswordView;
-    private View mLoginFormView;
+    private EditText mNameView;
+    private EditText mStudentEmailView;
+    private EditText mPhoneNumberView;
+    private View mRegisterFormView;
     private ProgressDialog pDialog;
 
-    private SessionManager session;
     private SQLiteHandler db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_register);
         // Set up the login form.
-        mUsernameView = (EditText) findViewById(R.id.username);
+        mRegisterFormView = findViewById(R.id.Register_form);
 
-        mPasswordView = (EditText) findViewById(R.id.password);
+        mUsernameView = (EditText) mRegisterFormView.findViewById(R.id.username);
 
-        Button mLoginButton = (Button) findViewById(R.id.login_button);
-        mLoginButton.setOnClickListener(new View.OnClickListener() {
+        mPasswordView = (EditText) mRegisterFormView.findViewById(R.id.password);
+        mNameView = (EditText) mRegisterFormView.findViewById(R.id.name);
 
-
+        mStudentEmailView = (EditText) mRegisterFormView.findViewById(R.id.studentEmail);
+        mPhoneNumberView = (EditText) mRegisterFormView.findViewById(R.id.phoneNumber);
+        Button mRegisterButton = (Button) mRegisterFormView.findViewById(R.id.register_button);
+        mRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String username = mUsernameView.getText().toString().trim();
                 String password = mPasswordView.getText().toString().trim();
-
-                if(!username.isEmpty()&&!password.isEmpty()){
-                    checkLogin(username, password);
-                }else {
-                    Toast.makeText(getApplicationContext(),"Please enter username/password",Toast.LENGTH_LONG).show();
+                String name = mNameView.getText().toString().trim();
+                String phoneNumber = mPhoneNumberView.getText().toString().trim();
+                String studentEmail = mStudentEmailView.getText().toString().trim();
+                if (!username.isEmpty() && !password.isEmpty() && !name.isEmpty() && !phoneNumber.isEmpty() && !studentEmail.isEmpty()) {
+                    registerMember(username, password, studentEmail, phoneNumber, name);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Please fill all the input", Toast.LENGTH_LONG).show();
                 }
             }
         });
-        Button mCreateAccountButton = (Button) findViewById(R.id.createAccountButton);
-        mCreateAccountButton.setOnClickListener(new View.OnClickListener() {
+        Button mAlreadyMemberButton = (Button) findViewById(R.id.already_Member_button);
+        mAlreadyMemberButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
+                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
-        mLoginFormView = findViewById(R.id.login_form);
         pDialog = new ProgressDialog(this);
         pDialog.setCancelable(false);
         // SQLite database handler
         db = new SQLiteHandler(getApplicationContext());
 
-        // Session manager
-        session = new SessionManager(getApplicationContext());
 
-        if (session.isLoggedIn()) {
-            // User is already logged in. Take him to main activity
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        }
     }
 
-    private void checkLogin(final String username, final String password) {
+    private void registerMember(final String username, final String password, final String studentEmail, final String phoneNumber, final String name) {
         // Tag used to cancel the request
-        String tag_string_req = "req_login";
+        String tag_string_req = "req_register";
 
-        pDialog.setMessage("Logging in ...");
+        pDialog.setMessage("Registering ...");
         showDialog();
 
         StringRequest strReq = new StringRequest(Request.Method.POST,
-                APILinks.LOGIN, new Response.Listener<String>() {
+                APILinks.REGISTER, new Response.Listener<String>() {
 
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "Login Response: " + response.toString());
+                Log.d(TAG, "register Response: " + response.toString());
                 hideDialog();
 
                 try {
                     JSONArray jObj = new JSONArray(response);
-                    boolean error = jObj.length()==0?false:true;
+                    boolean noError = jObj.length() == 0 ? false : true;
 
                     // Check for error node in json
-                    if (error) {
-                        // member successfully logged in
-                        // Create login session
-                        session.setLogin(true);
-
-                        // Now store the member in SQLite
-
-                        JSONObject member = jObj.getJSONObject(1);
+                    if (noError) {
+                        JSONObject member = jObj.getJSONObject(0);
                         String name = member.getString("name");
                         String studentemail = member.getString("studentemail");
                         String username = member.getString("username");
@@ -129,18 +114,18 @@ public class LoginActivity extends Activity {
                         String phoneNumber = member.getString("phonenumber");
 
                         // Inserting row in users table
-                        db.addMember(name,username,studentemail,password,phoneNumber);
+                        db.addMember(name, username, studentemail, password, phoneNumber);
+
                         // Launch main activity
-                        Intent intent = new Intent(LoginActivity.this,
-                                MainActivity.class);
+                        Intent intent = new Intent(RegisterActivity.this,
+                                LoginActivity.class);
                         startActivity(intent);
                         finish();
                     } else {
-                        // Error in login. Get the error message
                         JSONObject jsonObject = new JSONObject(response);
                         String errorMsg = jsonObject.getString("error").toString();
                         Toast.makeText(getApplicationContext(),
-                                "error"+errorMsg, Toast.LENGTH_LONG).show();
+                                "error" + errorMsg, Toast.LENGTH_LONG).show();
                     }
                 } catch (JSONException e) {
                     // JSON error
@@ -153,13 +138,15 @@ public class LoginActivity extends Activity {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Login Error: " + error.getMessage());
+                Log.e(TAG, "register Error: " + error.getMessage());
                 try {
                     JSONObject jsonObject = new JSONObject(new String(error.networkResponse.data));
                     Toast.makeText(getApplicationContext(),
-                            "error: "+jsonObject.getString("error"), Toast.LENGTH_LONG).show();
-                } catch (JSONException e) {
+                            "error: " + jsonObject.getString("error"), Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
                     e.printStackTrace();
+                    Toast.makeText(getApplicationContext(),
+                            "error: ", Toast.LENGTH_LONG).show();
                 }
 
                 hideDialog();
@@ -172,12 +159,16 @@ public class LoginActivity extends Activity {
                 Map<String, String> params = new HashMap<String, String>();
                 params.put("username", username);
                 params.put("password", password);
+                params.put("studentemail", studentEmail);
+                params.put("name", name);
+                params.put("phonenumber", phoneNumber);
+
 
                 return params;
             }
 
         };
-        strReq.setRetryPolicy(new DefaultRetryPolicy(5000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        strReq.setRetryPolicy(new DefaultRetryPolicy(10000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }

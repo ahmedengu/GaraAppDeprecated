@@ -8,7 +8,7 @@
               android:paddingLeft="@dimen/activity_horizontal_margin"
               android:paddingRight="@dimen/activity_horizontal_margin"
               android:paddingTop="@dimen/activity_vertical_margin"
-              tools:context="com.g_ara.garaapp.LoginActivity">
+              tools:context="com.g_ara.garaapp.RegisterActivity">
 
     <!-- Login progress -->
     <ProgressBar
@@ -19,15 +19,8 @@
             android:layout_marginBottom="8dp"
             android:visibility="gone"/>
 
-    <ImageView
-            android:layout_width="181dp"
-            android:layout_height="181dp"
-            android:id="@+id/imageView2"
-            android:layout_gravity="center_horizontal"
-            android:src="@drawable/logo"/>
-
     <ScrollView
-            android:id="@+id/login_form"
+            android:id="@+id/Register_form"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -35,8 +28,22 @@
                 android:id="@+id/email_login_form"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:weightSum="1">
+                android:orientation="vertical">
+
+            <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <AutoCompleteTextView
+                        android:id="@+id/name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/name"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:inputType="textPersonName"/>
+
+            </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
@@ -47,7 +54,22 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/username"
-                        android:inputType="text"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:inputType="text"/>
+
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <AutoCompleteTextView
+                        android:id="@+id/studentEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/prompt_email"
+                        android:inputType="textEmailAddress"
                         android:maxLines="1"
                         android:singleLine="true"/>
 
@@ -67,30 +89,45 @@
                         android:imeOptions="actionUnspecified"
                         android:inputType="textPassword"
                         android:maxLines="1"
-                        android:singleLine="true"/>
+                        android:singleLine="true"
+                        />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <AutoCompleteTextView
+                        android:id="@+id/phoneNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/phoneNumber"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:inputType="phone"/>
 
             </android.support.design.widget.TextInputLayout>
 
             <Button
-                    android:id="@+id/login_button"
+                    android:id="@+id/register_button"
                     style="?android:textAppearanceSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="@string/login"
+                    android:text="@string/register"
                     android:textStyle="bold"
                     android:background="@color/button_material_light"/>
 
             <Button
+                    android:id="@+id/already_Member_button"
+                    style="?android:textAppearanceSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/createAccount"
-                    android:id="@+id/createAccountButton"
-                    android:layout_weight="1.56"
-                    android:background="@color/button_material_dark"
-                    android:layout_marginTop="@dimen/activity_vertical_margin"/>
-
+                    android:layout_marginTop="16dp"
+                    android:text="@string/alreadyMember"
+                    android:textStyle="bold"
+                    android:background="@color/button_material_dark"/>
         </LinearLayout>
     </ScrollView>
-
 </LinearLayout>
