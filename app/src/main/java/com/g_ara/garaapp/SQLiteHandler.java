@@ -49,6 +49,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     private static final String    LATITUDE= "latitude";
     private static final String    PIN= "pin";
     private static final String   UNIVERSITYID= "universityID";
+    private static final String   ACCESSTOKEN= "accesstoken";
 
 
     public SQLiteHandler(Context context) {
@@ -58,7 +59,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     // Creating Tables
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_LOGIN_TABLE = "CREATE TABLE Member (ID INTEGER PRIMARY KEY, TIMESTAMP timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, name text NOT NULL, username text NOT NULL, studentEmail text NOT NULL, phoneNumber varchar(15), birthDate timestamp, activited integer(1) DEFAULT '0', gender varchar(255) DEFAULT 'M', password text NOT NULL, collegeID integer(11), salt varchar(10), pic text, bloodType varchar(2), emergencyNumber text, balance integer(11) DEFAULT 0, studentEmailActivationCode varchar(10), rideID integer(11), memberGroupID integer(11), longitude double(10), latitude double(10), pin text, universityID integer(11));";
+        String CREATE_LOGIN_TABLE = "CREATE TABLE Member (ID INTEGER, TIMESTAMP timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, name text NOT NULL, username text NOT NULL, studentEmail text NOT NULL, phoneNumber varchar(15), birthDate timestamp, activited integer(1) DEFAULT '0', gender varchar(255) DEFAULT 'M', password text NOT NULL, collegeID integer(11), salt varchar(10), pic text, bloodType varchar(2), emergencyNumber text, balance integer(11) DEFAULT 0, studentEmailActivationCode varchar(10), rideID integer(11), memberGroupID integer(11), longitude double(10), latitude double(10), pin text, universityID integer(11), accesstoken text NOT NULL);";
 
         db.execSQL(CREATE_LOGIN_TABLE);
 
@@ -78,15 +79,19 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     /**
      * Storing member details in database
      * */
-    public void addMember(String NAME,String USERNAME,String STUDENTEMAIL, String PASSWORD, String PHONENUMBER) {
+    public void addMember(String ID,String NAME,String USERNAME,String STUDENTEMAIL, String PASSWORD, String PHONENUMBER,String ACCESSTOKEN) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
+        values.put(this.ID, ID);
+
         values.put(this.NAME, NAME);
         values.put(this.USERNAME, USERNAME);
         values.put(this.STUDENTEMAIL, STUDENTEMAIL);
         values.put(this.PASSWORD, PASSWORD);
         values.put(this.PHONENUMBER, PHONENUMBER);
+        values.put(this.ACCESSTOKEN, ACCESSTOKEN);
+
 //        values.put("ID",1);
 
         // Inserting Row
@@ -133,6 +138,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             member.put("latitude", cursor.getString(20));
             member.put("pin", cursor.getString(21));
             member.put("universityID", cursor.getString(22));
+            member.put(ACCESSTOKEN, cursor.getString(23));
 
         }
         cursor.close();

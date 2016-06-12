@@ -120,8 +120,10 @@ public class LoginActivity extends Activity {
                         session.setLogin(true);
 
                         // Now store the member in SQLite
+                        String accesstoken = jObj.getJSONObject(0).getString("value");
 
                         JSONObject member = jObj.getJSONObject(1);
+                        String id = member.getString("id");
                         String name = member.getString("name");
                         String studentemail = member.getString("studentemail");
                         String username = member.getString("username");
@@ -129,7 +131,7 @@ public class LoginActivity extends Activity {
                         String phoneNumber = member.getString("phonenumber");
 
                         // Inserting row in users table
-                        db.addMember(name,username,studentemail,password,phoneNumber);
+                        db.addMember(id,name,username,studentemail,password,phoneNumber,accesstoken);
                         // Launch main activity
                         Intent intent = new Intent(LoginActivity.this,
                                 MainActivity.class);
