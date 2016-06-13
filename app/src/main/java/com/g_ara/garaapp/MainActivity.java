@@ -1,18 +1,15 @@
 package com.g_ara.garaapp;
 
 import android.Manifest;
-import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Geocoder;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
@@ -24,7 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewStub;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.DefaultRetryPolicy;
@@ -41,13 +38,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.*;
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,6 +61,8 @@ public class MainActivity extends AppCompatActivity
     private SessionManager session;
     private TextView studentEmail;
     private TextView studentName;
+    private ImageView studentPIC;
+
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
@@ -103,7 +97,13 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dispatch();
+                try {
+                    dispatch();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    hideDialog();
+                    Toast.makeText(getApplicationContext(), "please select source and distinition", Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -118,6 +118,10 @@ public class MainActivity extends AppCompatActivity
         View v = navigationView.getHeaderView(0);
         studentEmail = (TextView) v.findViewById(R.id.studentEmail1);
         studentName = (TextView) v.findViewById(R.id.studentName1);
+        studentPIC = (ImageView) v.findViewById(R.id.studentPIC);
+        new ImageLoadTask(member.get("pic"), studentPIC).execute();
+
+
         studentEmail.setText(member.get("studentEmail"));
         studentName.setText(member.get("name"));
 
@@ -168,12 +172,13 @@ public class MainActivity extends AppCompatActivity
                     JSONArray jsonArray = new JSONArray(response);
                     if(jsonArray.length()>0){
                         Toast.makeText(getApplicationContext(), ""+jsonArray.length() + " driver found!", Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(MainActivity.this, DriveresActivity.class);
+                        intent.putExtra("drivers",jsonArray.toString());
+                        startActivity(intent);
+
                     }else {
                         Toast.makeText(getApplicationContext(),  "no driver found!", Toast.LENGTH_LONG).show();
                     }
-
-                    startActivity(new Intent(MainActivity.this, DriveresActivity.class));
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -290,16 +295,16 @@ public class MainActivity extends AppCompatActivity
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details..
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{"android.permission.ACCESS_FINE_LOCATION"}, 225);
-            }
-            Toast.makeText(null, "please enable gps", Toast.LENGTH_LONG).show();
+
+            Toast.makeText(getApplicationContext(), "please enable gps", Toast.LENGTH_LONG).show();
 
             return;
         }
         Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (location == null) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            Toast.makeText(getApplicationContext(), "please enable gps", Toast.LENGTH_LONG).show();
+
         } else {
             handleNewLocation(location);
         }
@@ -347,8 +352,12 @@ public class MainActivity extends AppCompatActivity
         MarkerOptions options = new MarkerOptions()
                 .position(latLng)
                 .title("You are here!");
+        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
         sourceMarker = mMap.addMarker(options);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(latLng).zoom(13).build();
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
     @Override

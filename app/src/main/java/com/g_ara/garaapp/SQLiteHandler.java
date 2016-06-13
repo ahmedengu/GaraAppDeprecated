@@ -7,9 +7,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import org.json.JSONObject;
 
+import java.lang.reflect.Field;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SQLiteHandler extends SQLiteOpenHelper {
 
@@ -26,30 +31,31 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     private static final String MEMBER = "Member";
 
     // Login Table Columns names
-    private static final String  ID = "ID";
+    private static final String LOCALID = "localid";
+    private static final String ID = "ID";
     private static final String TIMESTAMP = "TIMESTAMP";
-    private static final String    NAME= "name";
-    private static final String    USERNAME= "username";
-    private static final String    STUDENTEMAIL= "studentEmail";
-    private static final String    PHONENUMBER= "phoneNumber";
-    private static final String BIRTHDATE= "birthDate";
-    private static final String   ACTIVITED= "activited";
-    private static final String    GENDER= "gender";
-    private static final String    PASSWORD= "password";
-    private static final String   COLLEGEID= "collegeID";
-    private static final String    SALT= "salt";
-    private static final String    PIC= "pic";
-    private static final String    BLOODTYPE= "bloodType";
-    private static final String    EMERGENCYNUMBER= "emergencyNumber";
-    private static final String   BALANCE= "balance";
-    private static final String    STUDENTEMAILACTIVATIONCODE= "studentEmailActivationCode";
-    private static final String   RIDEID= "rideID";
-    private static final String   MEMBERGROUPID= "memberGroupID";
-    private static final String    LONGITUDE= "longitude";
-    private static final String    LATITUDE= "latitude";
-    private static final String    PIN= "pin";
-    private static final String   UNIVERSITYID= "universityID";
-    private static final String   ACCESSTOKEN= "accesstoken";
+    private static final String NAME = "name";
+    private static final String USERNAME = "username";
+    private static final String STUDENTEMAIL = "studentEmail";
+    private static final String PHONENUMBER = "phoneNumber";
+    private static final String BIRTHDATE = "birthDate";
+    private static final String ACTIVITED = "activited";
+    private static final String GENDER = "gender";
+    private static final String PASSWORD = "password";
+    private static final String COLLEGEID = "collegeID";
+    private static final String SALT = "salt";
+    private static final String PIC = "pic";
+    private static final String BLOODTYPE = "bloodType";
+    private static final String EMERGENCYNUMBER = "emergencyNumber";
+    private static final String BALANCE = "balance";
+    private static final String STUDENTEMAILACTIVATIONCODE = "studentEmailActivationCode";
+    private static final String RIDEID = "rideID";
+    private static final String MEMBERGROUPID = "memberGroupID";
+    private static final String LONGITUDE = "longitude";
+    private static final String LATITUDE = "latitude";
+    private static final String PIN = "pin";
+    private static final String UNIVERSITYID = "universityID";
+    private static final String ACCESSTOKEN = "accesstoken";
 
 
     public SQLiteHandler(Context context) {
@@ -59,7 +65,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     // Creating Tables
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_LOGIN_TABLE = "CREATE TABLE Member (ID INTEGER, TIMESTAMP timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, name text NOT NULL, username text NOT NULL, studentEmail text NOT NULL, phoneNumber varchar(15), birthDate timestamp, activited integer(1) DEFAULT '0', gender varchar(255) DEFAULT 'M', password text NOT NULL, collegeID integer(11), salt varchar(10), pic text, bloodType varchar(2), emergencyNumber text, balance integer(11) DEFAULT 0, studentEmailActivationCode varchar(10), rideID integer(11), memberGroupID integer(11), longitude double(10), latitude double(10), pin text, universityID integer(11), accesstoken text NOT NULL);";
+        String CREATE_LOGIN_TABLE = "CREATE TABLE Member (localid INTEGER PRIMARY KEY,ID INTEGER, TIMESTAMP timestamp DEFAULT CURRENT_TIMESTAMP , name text , username text , studentEmail text , phoneNumber varchar(15), birthDate timestamp, activited integer(1) DEFAULT '0', gender varchar(255) DEFAULT 'M', password text , collegeID integer(11), salt varchar(10), pic text, bloodType varchar(2), emergencyNumber text, balance integer(11) DEFAULT 0, studentEmailActivationCode varchar(10), rideID integer(11), memberGroupID integer(11), longitude double(10), latitude double(10), pin text, universityID integer(11), accesstoken text );";
 
         db.execSQL(CREATE_LOGIN_TABLE);
 
@@ -78,8 +84,8 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
     /**
      * Storing member details in database
-     * */
-    public void addMember(String ID,String NAME,String USERNAME,String STUDENTEMAIL, String PASSWORD, String PHONENUMBER,String ACCESSTOKEN) {
+     */
+    public void addMember(String ID, String NAME, String USERNAME, String STUDENTEMAIL, String PASSWORD, String PHONENUMBER, String PIC, String ACCESSTOKEN) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -91,6 +97,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         values.put(this.PASSWORD, PASSWORD);
         values.put(this.PHONENUMBER, PHONENUMBER);
         values.put(this.ACCESSTOKEN, ACCESSTOKEN);
+        values.put(this.PIC, PIC);
 
 //        values.put("ID",1);
 
@@ -103,9 +110,41 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Log.d(TAG, "New member inserted into sqlite: " + id);
     }
 
+    public void addMember(Map<String, String> data) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+
+        for (Map.Entry<String, String> e : data.entrySet()) {
+            if (e.getKey().equals("pic")) {
+                if(e.getValue()==null||e.getValue().equals("null"))
+                    e.setValue("http://www.g-ara.com/assets/images/team/2.jpg");
+            }
+            try {
+                if(!e.getValue().equals("null")) {
+                    Field declaredField = getClass().getDeclaredField(e.getKey().toUpperCase());
+                    Object o = declaredField.get(this);
+                    values.put(o.toString(), e.getValue());
+                }
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        }
+
+
+        // Inserting Row
+        long id = db.insert(MEMBER, null, values);
+        HashMap<String, String> memberDetails = getMemberDetails();
+
+        db.close(); // Closing database connection
+
+        Log.d(TAG, "New member inserted into sqlite: " + id);
+    }
+
     /**
      * Getting member data from database
-     * */
+     */
     public HashMap<String, String> getMemberDetails() {
         HashMap<String, String> member = new HashMap<String, String>();
         String selectQuery = "SELECT  * FROM " + MEMBER;
@@ -115,32 +154,39 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         // Move to first row
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
-            member.put("ID", cursor.getString(0));
-            member.put("TIMESTAMP", cursor.getString(1));
-            member.put("name", cursor.getString(2));
-            member.put("username", cursor.getString(3));
-            member.put(STUDENTEMAIL, cursor.getString(4));
-            member.put("phoneNumber", cursor.getString(5));
-            member.put("birthDate", cursor.getString(6));
-            member.put("activited", cursor.getString(7));
-            member.put("gender", cursor.getString(8));
-            member.put("password", cursor.getString(9));
-            member.put("collegeID", cursor.getString(10));
-            member.put("salt", cursor.getString(11));
-            member.put("pic", cursor.getString(12));
-            member.put("bloodType", cursor.getString(13));
-            member.put("emergencyNumber", cursor.getString(14));
-            member.put("balance", cursor.getString(15));
-            member.put("studentEmailActivationCode", cursor.getString(16));
-            member.put("rideID", cursor.getString(17));
-            member.put("memberGroupID", cursor.getString(18));
-            member.put("longitude", cursor.getString(19));
-            member.put("latitude", cursor.getString(20));
-            member.put("pin", cursor.getString(21));
-            member.put("universityID", cursor.getString(22));
-            member.put(ACCESSTOKEN, cursor.getString(23));
-
+            String[] columnNames = cursor.getColumnNames();
+            for (int i = 0; i < columnNames.length; i++) {
+                member.put(columnNames[i], cursor.getString(i));
+            }
         }
+        cursor.close();
+        db.close();
+        // return member
+        Log.d(TAG, "Fetching member from Sqlite: " + member.toString());
+
+        return member;
+    }
+
+    public List<HashMap<String, String>> getMembersDetails() {
+        List<HashMap<String, String>> member = new ArrayList<>();
+        String selectQuery = "SELECT  * FROM " + MEMBER;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // Move to first row
+        ;
+
+        while (cursor.moveToNext()) {
+            if (cursor.getCount() > 0) {
+                String[] columnNames = cursor.getColumnNames();
+                for (int i = 0; i < columnNames.length; i++) {
+                    HashMap<String, String> stringStringHashMap = new HashMap<>();
+                    stringStringHashMap.put(columnNames[i], cursor.getString(i));
+                    member.add(stringStringHashMap);
+                }
+            }
+        }
+
         cursor.close();
         db.close();
         // return member
@@ -151,7 +197,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
     /**
      * Re crate database Delete all tables and create them again
-     * */
+     */
     public void deleteMembers() {
         SQLiteDatabase db = this.getWritableDatabase();
         // Delete All Rows

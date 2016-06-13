@@ -12,21 +12,18 @@ import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
-import com.android.volley.Request.Method;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
-
-
-
-import static android.Manifest.permission.READ_CONTACTS;
 
 /**
  * A login screen that offers login via email/password.
@@ -86,7 +83,7 @@ public class LoginActivity extends Activity {
         // Session manager
         session = new SessionManager(getApplicationContext());
 
-        if (session.isLoggedIn()) {
+        if (session.isLoggedIn()&&db.getMemberDetails().size()>0) {
             // User is already logged in. Take him to main activity
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);
@@ -123,16 +120,23 @@ public class LoginActivity extends Activity {
                         String accesstoken = jObj.getJSONObject(0).getString("value");
 
                         JSONObject member = jObj.getJSONObject(1);
-                        String id = member.getString("id");
-                        String name = member.getString("name");
-                        String studentemail = member.getString("studentemail");
-                        String username = member.getString("username");
-                        String password = member.getString("password");
-                        String phoneNumber = member.getString("phonenumber");
+                        HashMap<String,String> map = new Gson().fromJson(member.toString(), new TypeToken<HashMap<String, String>>(){}.getType());
 
-                        // Inserting row in users table
-                        db.addMember(id,name,username,studentemail,password,phoneNumber,accesstoken);
-                        // Launch main activity
+                        map.put("accesstoken",accesstoken);
+
+
+//                        String id = member.getString("id");
+//                        String name = member.getString("name");
+//                        String studentemail = member.getString("studentemail");
+//                        String username = member.getString("username");
+//                        String password = member.getString("password");
+//                        String phoneNumber = member.getString("phonenumber");
+//                        String pic = member.getString("pic");
+//
+//                        // Inserting row in users table
+//                        db.addMember(id,name,username,studentemail,password,phoneNumber,pic,accesstoken);
+                        db.addMember(map);
+//                         Launch main activity
                         Intent intent = new Intent(LoginActivity.this,
                                 MainActivity.class);
                         startActivity(intent);

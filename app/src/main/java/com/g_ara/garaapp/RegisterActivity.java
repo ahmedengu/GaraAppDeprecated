@@ -106,17 +106,6 @@ public class RegisterActivity extends Activity {
 
                     // Check for error node in json
                     if (noError) {
-                        JSONObject member = jObj.getJSONObject(0);
-                        String id = member.getString("id");
-                        String name = member.getString("name");
-                        String studentemail = member.getString("studentemail");
-                        String username = member.getString("username");
-                        String password = member.getString("password");
-                        String phoneNumber = member.getString("phonenumber");
-
-                        // Inserting row in users table
-                        db.addMember(id,name, username, studentemail, password, phoneNumber,"");
-
                         // Launch main activity
                         Intent intent = new Intent(RegisterActivity.this,
                                 LoginActivity.class);
