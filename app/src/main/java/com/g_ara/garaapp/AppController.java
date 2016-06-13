@@ -3,6 +3,7 @@ package com.g_ara.garaapp;
 /**
  * Created by ahmedengu.
  */
+
 import android.app.Application;
 import android.text.TextUtils;
 

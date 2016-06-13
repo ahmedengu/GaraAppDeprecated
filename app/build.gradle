@@ -30,4 +30,5 @@ dependencies {
     compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
     compile 'com.android.support:recyclerview-v7:23.2.0'
     compile 'com.android.support:cardview-v7:23.2.0'
+
 }

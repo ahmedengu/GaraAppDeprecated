@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity
     Marker distMarker;
     Marker sourceMarker;
     private ProgressDialog pDialog;
-
+    public static double currentLatitude, currentLongitude, distLongitude, distLatitude;
     HashMap<String, String> member;
 
     @Override
@@ -155,11 +155,11 @@ public class MainActivity extends AppCompatActivity
         pDialog.setMessage("dispatching..");
         showDialog();
 
-        final String p1 = String.valueOf(distMarker.getPosition().latitude);
-        final String p2 = String.valueOf(distMarker.getPosition().longitude);
-        final String p3 = String.valueOf(sourceMarker.getPosition().latitude);
-        final String p4 = String.valueOf(sourceMarker.getPosition().longitude);
-        final String p5 = String.valueOf(member.get("ID"));
+        final String distLat = String.valueOf(distMarker.getPosition().latitude);
+        final String distLong = String.valueOf(distMarker.getPosition().longitude);
+        final String srcLat = String.valueOf(sourceMarker.getPosition().latitude);
+        final String srcLong = String.valueOf(sourceMarker.getPosition().longitude);
+        final String pID = String.valueOf(member.get("ID"));
 
         StringRequest strReq = new StringRequest(Request.Method.POST,
                 APILinks.DISPATCH, new Response.Listener<String>() {
@@ -170,14 +170,17 @@ public class MainActivity extends AppCompatActivity
 
                 try {
                     JSONArray jsonArray = new JSONArray(response);
-                    if(jsonArray.length()>0){
-                        Toast.makeText(getApplicationContext(), ""+jsonArray.length() + " driver found!", Toast.LENGTH_LONG).show();
-                        Intent intent = new Intent(MainActivity.this, DriveresActivity.class);
-                        intent.putExtra("drivers",jsonArray.toString());
+                    if (jsonArray.length() > 0) {
+                        Toast.makeText(getApplicationContext(), "" + jsonArray.length() + " driver found!", Toast.LENGTH_LONG).show();
+                        distLatitude = Double.parseDouble(distLat);
+                        distLongitude = Double.parseDouble(distLong);
+
+                        Intent intent = new Intent(MainActivity.this, DispatchActivity.class);
+                        intent.putExtra("drivers", jsonArray.toString());
                         startActivity(intent);
 
-                    }else {
-                        Toast.makeText(getApplicationContext(),  "no driver found!", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "no driver found!", Toast.LENGTH_LONG).show();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -199,17 +202,16 @@ public class MainActivity extends AppCompatActivity
             protected Map<String, String> getParams() {
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("distLatitude",p1 );
-                params.put("distLongitude",p2 );
-                params.put("latitude",p3 );
-                params.put("longitude", p4);
-                params.put("id", p5);
+                params.put("distLatitude", distLat);
+                params.put("distLongitude", distLong);
+                params.put("latitude", srcLat);
+                params.put("longitude", srcLong);
+                params.put("id", pID);
 
                 return params;
             }
 
         };
-        strReq.setRetryPolicy(new DefaultRetryPolicy(5000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, "dispatching");
 
@@ -340,8 +342,8 @@ public class MainActivity extends AppCompatActivity
     private void handleNewLocation(Location location) {
         Log.d(TAG, location.toString());
 
-        double currentLatitude = location.getLatitude();
-        double currentLongitude = location.getLongitude();
+        currentLatitude = location.getLatitude();
+        currentLongitude = location.getLongitude();
         sendLocationToServer(currentLatitude, currentLongitude);
 
         LatLng latLng = new LatLng(currentLatitude, currentLongitude);
@@ -454,7 +456,6 @@ public class MainActivity extends AppCompatActivity
             }
 
         };
-        strReq.setRetryPolicy(new DefaultRetryPolicy(5000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, "updateLocation");
     }

@@ -7,10 +7,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-import org.json.JSONObject;
 
 import java.lang.reflect.Field;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +27,8 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
     // Login table name
     private static final String MEMBER = "Member";
+    private static final String DRIVER = "Driver";
+    private static final String CAR = "Car";
 
     // Login Table Columns names
     private static final String LOCALID = "localid";
@@ -57,6 +57,12 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     private static final String UNIVERSITYID = "universityID";
     private static final String ACCESSTOKEN = "accesstoken";
 
+    private static final String MEMBERID = "memberID";
+    private static final String LICENSENUMBER = "licenseNumber";
+    private static final String LICENSEPIC = "licensePic";
+    private static final String IDENTYCARDPIC = "identyCardPic";
+    private static final String LICENSEEXPIREDATE = "licenseExpireDate";
+
 
     public SQLiteHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -65,9 +71,15 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     // Creating Tables
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_LOGIN_TABLE = "CREATE TABLE Member (localid INTEGER PRIMARY KEY,ID INTEGER, TIMESTAMP timestamp DEFAULT CURRENT_TIMESTAMP , name text , username text , studentEmail text , phoneNumber varchar(15), birthDate timestamp, activited integer(1) DEFAULT '0', gender varchar(255) DEFAULT 'M', password text , collegeID integer(11), salt varchar(10), pic text, bloodType varchar(2), emergencyNumber text, balance integer(11) DEFAULT 0, studentEmailActivationCode varchar(10), rideID integer(11), memberGroupID integer(11), longitude double(10), latitude double(10), pin text, universityID integer(11), accesstoken text );";
+        String CREATE_MEMBER_TABLE = "CREATE TABLE Member (localid INTEGER PRIMARY KEY,ID INTEGER, TIMESTAMP timestamp DEFAULT CURRENT_TIMESTAMP , name text , username text , studentEmail text , phoneNumber varchar(15), birthDate timestamp, activited integer(1) DEFAULT '0', gender varchar(255) DEFAULT 'M', password text , collegeID integer(11), salt varchar(10), pic text, bloodType varchar(2), emergencyNumber text, balance integer(11) DEFAULT 0, studentEmailActivationCode varchar(10), rideID integer(11), memberGroupID integer(11), longitude double(10), latitude double(10), pin text, universityID integer(11), accesstoken text );";
 
-        db.execSQL(CREATE_LOGIN_TABLE);
+        String CREATE_DRIVER_TABLE = "CREATE TABLE Driver (localid INTEGER PRIMARY KEY,ID INTEGER , memberID integer(11) , licenseNumber text , licensePic text , identyCardPic text , licenseExpireDate date );";
+
+        String CREATE_CAR_TABLE = "CREATE TABLE Car (localid INTEGER PRIMARY KEY,ID INTEGER, driverID integer(11) , plateNumber text , platePic text, carModelID integer(11) , frontPic text, backPic text, sidePic text, insidePic text, licenseNumber text , licensePic text, licenseExpireDate date , DistLongitude double(10), DistLatitude double(10), availableSeats integer(11), state integer(1) DEFAULT '0');";
+
+        db.execSQL(CREATE_MEMBER_TABLE);
+        db.execSQL(CREATE_DRIVER_TABLE);
+        db.execSQL(CREATE_CAR_TABLE);
 
         Log.d(TAG, "Database tables created");
     }
@@ -77,38 +89,13 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS " + MEMBER);
+        db.execSQL("DROP TABLE IF EXISTS " + DRIVER);
+        db.execSQL("DROP TABLE IF EXISTS " + CAR);
 
         // Create tables again
         onCreate(db);
     }
 
-    /**
-     * Storing member details in database
-     */
-    public void addMember(String ID, String NAME, String USERNAME, String STUDENTEMAIL, String PASSWORD, String PHONENUMBER, String PIC, String ACCESSTOKEN) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(this.ID, ID);
-
-        values.put(this.NAME, NAME);
-        values.put(this.USERNAME, USERNAME);
-        values.put(this.STUDENTEMAIL, STUDENTEMAIL);
-        values.put(this.PASSWORD, PASSWORD);
-        values.put(this.PHONENUMBER, PHONENUMBER);
-        values.put(this.ACCESSTOKEN, ACCESSTOKEN);
-        values.put(this.PIC, PIC);
-
-//        values.put("ID",1);
-
-        // Inserting Row
-        long id = db.insert(MEMBER, null, values);
-        HashMap<String, String> memberDetails = getMemberDetails();
-
-        db.close(); // Closing database connection
-
-        Log.d(TAG, "New member inserted into sqlite: " + id);
-    }
 
     public void addMember(Map<String, String> data) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -117,12 +104,12 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
 
         for (Map.Entry<String, String> e : data.entrySet()) {
-            if (e.getKey().equals("pic")) {
-                if(e.getValue()==null||e.getValue().equals("null"))
-                    e.setValue("http://www.g-ara.com/assets/images/team/2.jpg");
+            if (e.getKey().toLowerCase().contains("pic")) {
+                if (e.getValue() == null || e.getValue().equals("null"))
+                    e.setValue("https://pbs.twimg.com/profile_images/610486974990913536/5MdbcHvF.png");
             }
             try {
-                if(!e.getValue().equals("null")) {
+                if (!e.getValue().equals("null")) {
                     Field declaredField = getClass().getDeclaredField(e.getKey().toUpperCase());
                     Object o = declaredField.get(this);
                     values.put(o.toString(), e.getValue());
@@ -195,9 +182,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         return member;
     }
 
-    /**
-     * Re crate database Delete all tables and create them again
-     */
+
     public void deleteMembers() {
         SQLiteDatabase db = this.getWritableDatabase();
         // Delete All Rows
@@ -207,4 +192,126 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Log.d(TAG, "Deleted all member info from sqlite");
     }
 
+
+    public List<HashMap<String, String>> selectAll(String Table) {
+        List<HashMap<String, String>> list = new ArrayList<>();
+        try {
+            Field declaredField = getClass().getDeclaredField(Table.toUpperCase());
+            Object o = declaredField.get(this);
+            String selectQuery = "SELECT  * FROM " + o.toString();
+
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = db.rawQuery(selectQuery, null);
+
+            while (cursor.moveToNext()) {
+                if (cursor.getCount() > 0) {
+                    String[] columnNames = cursor.getColumnNames();
+                    for (int i = 0; i < columnNames.length; i++) {
+                        HashMap<String, String> stringStringHashMap = new HashMap<>();
+                        stringStringHashMap.put(columnNames[i], cursor.getString(i));
+                        list.add(stringStringHashMap);
+                    }
+                }
+            }
+
+            cursor.close();
+            db.close();
+            // return member
+            Log.d(TAG, "Fetching table from Sqlite: " + list.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "error " + e.getMessage());
+
+        }
+
+        return list;
+    }
+
+
+    public HashMap<String, String> selectOne(String Table) {
+        HashMap<String, String> hashMap = new HashMap<>();
+        try {
+            Field declaredField = getClass().getDeclaredField(Table.toUpperCase());
+            Object o = declaredField.get(this);
+            String selectQuery = "SELECT  * FROM " + o.toString();
+
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = db.rawQuery(selectQuery, null);
+            cursor.moveToFirst();
+            if (cursor.getCount() > 0) {
+                String[] columnNames = cursor.getColumnNames();
+                for (int i = 0; i < columnNames.length; i++) {
+                    hashMap.put(columnNames[i], cursor.getString(i));
+                }
+            }
+
+
+            cursor.close();
+            db.close();
+
+            Log.d(TAG, "Fetching table from Sqlite: " + hashMap.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "error " + e.getMessage());
+
+        }
+
+        return hashMap;
+    }
+
+    public void insert(String Table, Map<String, String> data) {
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            Field declaredField = getClass().getDeclaredField(Table.toUpperCase());
+            Object o = declaredField.get(this);
+
+            for (Map.Entry<String, String> e : data.entrySet()) {
+                if (e.getKey().toLowerCase().contains("pic")) {
+                    if (e.getValue() == null || e.getValue().equals("null"))
+                        e.setValue("https://pbs.twimg.com/profile_images/610486974990913536/5MdbcHvF.png");
+                }
+                try {
+                    if (!e.getValue().equals("null")) {
+                        declaredField = getClass().getDeclaredField(e.getKey().toUpperCase());
+                        o = declaredField.get(this);
+                        values.put(o.toString(), e.getValue());
+                    }
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+            declaredField = getClass().getDeclaredField(Table.toUpperCase());
+            o = declaredField.get(this);
+
+            long id = db.insert(o.toString(), null, values);
+
+            db.close(); // Closing database connection
+
+            Log.d(TAG, "New row inserted into " + o + ": " + id);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "insert error: " + e.getMessage());
+
+        }
+    }
+
+    public void dropTable(String Table) {
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+            // Delete All Rows
+            Field declaredField = getClass().getDeclaredField(Table.toUpperCase());
+            Object o = declaredField.get(this);
+            db.delete(o.toString(), null, null);
+            db.close();
+
+            Log.d(TAG, "Deleted all from " + o);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "error Deleteing  " + e.getMessage());
+
+        }
+    }
 }

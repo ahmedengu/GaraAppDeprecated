@@ -1,11 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+            android:id="@+id/menu_become_a_driver"
+            android:title="@string/become_a_driver"
+            android:visible="true"
+            />
+
+    <item
+            android:id="@+id/menu_item_driver_area"
+            android:title="@string/driver_area"
+            android:visible="false"
+            />
+
+    <item
+            android:id="@+id/menu_add_car"
+            android:title="@string/add_car"
+            android:visible="false"
+            />
     <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_menu_manage"
             android:title="@string/settings"/>
     <item
             android:id="@+id/logout"
-            android:title="logout"/>
+            android:title="@string/logout"/>
 
 </menu>

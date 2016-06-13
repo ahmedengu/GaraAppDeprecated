@@ -58,10 +58,10 @@ public class LoginActivity extends Activity {
                 String username = mUsernameView.getText().toString().trim();
                 String password = mPasswordView.getText().toString().trim();
 
-                if(!username.isEmpty()&&!password.isEmpty()){
+                if (!username.isEmpty() && !password.isEmpty()) {
                     checkLogin(username, password);
-                }else {
-                    Toast.makeText(getApplicationContext(),"Please enter username/password",Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Please enter username/password", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -83,7 +83,7 @@ public class LoginActivity extends Activity {
         // Session manager
         session = new SessionManager(getApplicationContext());
 
-        if (session.isLoggedIn()&&db.getMemberDetails().size()>0) {
+        if (session.isLoggedIn() && db.getMemberDetails().size() > 0) {
             // User is already logged in. Take him to main activity
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);
@@ -108,7 +108,7 @@ public class LoginActivity extends Activity {
 
                 try {
                     JSONArray jObj = new JSONArray(response);
-                    boolean error = jObj.length()==0?false:true;
+                    boolean error = jObj.length() == 0 ? false : true;
 
                     // Check for error node in json
                     if (error) {
@@ -120,9 +120,10 @@ public class LoginActivity extends Activity {
                         String accesstoken = jObj.getJSONObject(0).getString("value");
 
                         JSONObject member = jObj.getJSONObject(1);
-                        HashMap<String,String> map = new Gson().fromJson(member.toString(), new TypeToken<HashMap<String, String>>(){}.getType());
+                        HashMap<String, String> map = new Gson().fromJson(member.toString(), new TypeToken<HashMap<String, String>>() {
+                        }.getType());
 
-                        map.put("accesstoken",accesstoken);
+                        map.put("accesstoken", accesstoken);
 
 
 //                        String id = member.getString("id");
@@ -146,7 +147,7 @@ public class LoginActivity extends Activity {
                         JSONObject jsonObject = new JSONObject(response);
                         String errorMsg = jsonObject.getString("error").toString();
                         Toast.makeText(getApplicationContext(),
-                                "error"+errorMsg, Toast.LENGTH_LONG).show();
+                                "error" + errorMsg, Toast.LENGTH_LONG).show();
                     }
                 } catch (JSONException e) {
                     // JSON error
@@ -163,7 +164,7 @@ public class LoginActivity extends Activity {
                 try {
                     JSONObject jsonObject = new JSONObject(new String(error.networkResponse.data));
                     Toast.makeText(getApplicationContext(),
-                            "error: "+jsonObject.getString("error"), Toast.LENGTH_LONG).show();
+                            "error: " + jsonObject.getString("error"), Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -183,7 +184,6 @@ public class LoginActivity extends Activity {
             }
 
         };
-        strReq.setRetryPolicy(new DefaultRetryPolicy(5000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
