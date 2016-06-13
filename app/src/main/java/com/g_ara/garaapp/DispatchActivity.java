@@ -23,7 +23,6 @@ import android.content.Context;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.widget.Toast;
-import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -34,7 +33,10 @@ import org.json.JSONObject;
 
 public class DispatchActivity extends AppCompatActivity {
     public static final String TAG = DispatchActivity.class.getSimpleName();
-    public static final long MAX_WAIT_TIME = 30000;
+    public static final long MAX_WAIT_TIME = 100000;
+    public static final long TIME_INTERVAL = 1000;
+    public static final long CANCEL_WAIT_TIME = 30000;
+    public long beginTime, currentTime;
     private List<DispatchResult> dispatchResults = new ArrayList<>();
     private RecyclerView recyclerView;
     private DispatchAdapter mAdapter;
@@ -212,77 +214,87 @@ public class DispatchActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (makeReq[0]) {
-                    StringRequest strReq = new StringRequest(Request.Method.GET,
-                            APILinks.RIDE + "/" + id.toString(), new Response.Listener<String>() {
-
-                        @Override
-                        public void onResponse(String response) {
-                            Log.d(TAG, "waitingDriver Response: " + response.toString());
-                            hideDialog();
-
-                            try {
-                                JSONArray jObj = new JSONArray(response);
-                                boolean noError = jObj.length() == 0 ? false : true;
-
-
-                                if (noError) {
-                                    JSONObject jsonObject = jObj.getJSONObject(0);
-                                    dialog.cancel();
-
-                                    switch (jsonObject.get("accepted").toString()) {
-                                        case "null":
-                                            Toast.makeText(getApplicationContext(), "no response from driver", Toast.LENGTH_LONG).show();
-                                            break;
-                                        case "0":
-                                            Toast.makeText(getApplicationContext(), "driver rejected", Toast.LENGTH_LONG).show();
-
-                                            break;
-
-                                        case "1":
-                                            Toast.makeText(getApplicationContext(), "driver accepted", Toast.LENGTH_LONG).show();
-
-                                            AlertDialog.Builder builder = new AlertDialog.Builder(DispatchActivity.this);
-                                            builder.setTitle("driver accepted");
-                                            builder.setCancelable(false);
-                                            builder.setPositiveButton("go to check in screen", null);
-                                            builder.show();
-                                            break;
-                                    }
-                                } else {
-                                    JSONObject jsonObject = new JSONObject(response);
-                                    String errorMsg = jsonObject.getString("error").toString();
-                                    Toast.makeText(getApplicationContext(),
-                                            "error" + errorMsg, Toast.LENGTH_LONG).show();
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            }
-
-                        }
-                    }, new Response.ErrorListener() {
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, "waitingDriver Error: " + error.getMessage());
-                            try {
-                                JSONObject jsonObject = new JSONObject(new String(error.networkResponse.data));
-                                Toast.makeText(getApplicationContext(),
-                                        "error: " + jsonObject.getString("error"), Toast.LENGTH_LONG).show();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                Toast.makeText(getApplicationContext(),
-                                        "error: ", Toast.LENGTH_LONG).show();
-                            }
-
-                            hideDialog();
-                        }
-                    });
-                    AppController.getInstance().addToRequestQueue(strReq, "waitingDriver");
+                    beginTime = System.currentTimeMillis();
+                    dialog.cancel();
+                    busyWaitDriverResponse(id);
                 }
             }
-        }, 5000);
+        }, CANCEL_WAIT_TIME);
 
+    }
+
+    private void busyWaitDriverResponse(final Object id) {
+        pDialog.setMessage("waiting driver response... max 1 minute");
+        showDialog();
+        StringRequest strReq = new StringRequest(Request.Method.GET,
+                APILinks.RIDE + "/" + id.toString(), new Response.Listener<String>() {
+
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "waitingDriver Response: " + response.toString());
+
+                try {
+                    JSONArray jObj = new JSONArray(response);
+                    boolean noError = jObj.length() == 0 ? false : true;
+
+
+                    if (noError) {
+                        JSONObject jsonObject = jObj.getJSONObject(0);
+
+                        switch (jsonObject.get("accepted").toString()) {
+                            case "null":
+                                Toast.makeText(getApplicationContext(), "no response from driver", Toast.LENGTH_LONG).show();
+                                if (System.currentTimeMillis() - beginTime <= MAX_WAIT_TIME && currentTime >= TIME_INTERVAL) {
+                                    currentTime = System.currentTimeMillis();
+                                    busyWaitDriverResponse(id);
+                                } else {
+                                    hideDialog();
+                                }
+                                break;
+                            case "0":
+                                Toast.makeText(getApplicationContext(), "driver rejected", Toast.LENGTH_LONG).show();
+                                hideDialog();
+
+                                break;
+
+                            case "1":
+                                Toast.makeText(getApplicationContext(), "driver accepted", Toast.LENGTH_LONG).show();
+                                hideDialog();
+
+                                AlertDialog.Builder builder = new AlertDialog.Builder(DispatchActivity.this);
+                                builder.setTitle("driver accepted");
+                                builder.setCancelable(false);
+                                builder.setPositiveButton("go to check in screen", null);
+                                builder.show();
+
+                                break;
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                if (System.currentTimeMillis() - beginTime <= MAX_WAIT_TIME && currentTime >= TIME_INTERVAL) {
+                    currentTime = System.currentTimeMillis();
+                    busyWaitDriverResponse(id);
+                } else {
+                    hideDialog();
+                }
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "waitingDriver Error: " + error.getMessage());
+                if (System.currentTimeMillis() - beginTime <= MAX_WAIT_TIME && currentTime >= TIME_INTERVAL) {
+                    currentTime = System.currentTimeMillis();
+                    busyWaitDriverResponse(id);
+                } else {
+                    hideDialog();
+                }
+            }
+        });
+        AppController.getInstance().addToRequestQueue(strReq, "waitingDriver");
     }
 
     private void prepareDriverData(Object drivers) {
