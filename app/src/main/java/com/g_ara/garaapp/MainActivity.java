@@ -24,7 +24,6 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -57,7 +56,6 @@ public class MainActivity extends AppCompatActivity
     public static final String TAG = MainActivity.class.getSimpleName();
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
-    private SQLiteHandler db;
     private SessionManager session;
     private TextView studentEmail;
     private TextView studentName;
@@ -72,6 +70,9 @@ public class MainActivity extends AppCompatActivity
     private ProgressDialog pDialog;
     public static double currentLatitude, currentLongitude, distLongitude, distLatitude;
     HashMap<String, String> member;
+    HashMap<String, String> driver;
+
+    private SQLiteHandler db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +121,9 @@ public class MainActivity extends AppCompatActivity
         studentName = (TextView) v.findViewById(R.id.studentName1);
         studentPIC = (ImageView) v.findViewById(R.id.studentPIC);
         new ImageLoadTask(member.get("pic"), studentPIC).execute();
+
+        driver = db.selectOne("driver");
+
 
 
         studentEmail.setText(member.get("studentEmail"));
@@ -207,6 +211,7 @@ public class MainActivity extends AppCompatActivity
                 params.put("latitude", srcLat);
                 params.put("longitude", srcLong);
                 params.put("id", pID);
+                params.put("dist", "1000");
 
                 return params;
             }
@@ -221,7 +226,7 @@ public class MainActivity extends AppCompatActivity
     private void MemeberLogout() {
         session.setLogin(false);
 
-        db.deleteMembers();
+        db.deleteAll();
 
         // Launching the login activity
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
@@ -274,6 +279,13 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_settings) {
             startActivity(new Intent(MainActivity.this, SettingsActivity.class));
 
+        }else if(id == R.id.menu_become_a_driver){
+            startActivity(new Intent(MainActivity.this, BecomeDriverActivity.class));
+        }else if(id == R.id.menu_add_car){
+            startActivity(new Intent(MainActivity.this, AddCarActivity.class));
+        }else if(id == R.id.menu_item_driver_area){
+            startActivity(new Intent(MainActivity.this, ChooseCarActivity.class));
+            finish();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

@@ -125,19 +125,24 @@ public class LoginActivity extends Activity {
 
                         map.put("accesstoken", accesstoken);
 
-
-//                        String id = member.getString("id");
-//                        String name = member.getString("name");
-//                        String studentemail = member.getString("studentemail");
-//                        String username = member.getString("username");
-//                        String password = member.getString("password");
-//                        String phoneNumber = member.getString("phonenumber");
-//                        String pic = member.getString("pic");
-//
-//                        // Inserting row in users table
-//                        db.addMember(id,name,username,studentemail,password,phoneNumber,pic,accesstoken);
                         db.addMember(map);
-//                         Launch main activity
+
+                        if (2 < jObj.length()) {
+                            JSONObject o = jObj.getJSONObject(2);
+                            HashMap<String, String> m = new Gson().fromJson(o.toString(), new TypeToken<HashMap<String, String>>() {
+                            }.getType());
+                            db.insert("driver", m);
+                        }
+                        if (3 < jObj.length()) {
+                            JSONArray jsonArray = jObj.getJSONArray(3);
+
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                HashMap<String, String> m = new Gson().fromJson(jsonArray.get(i).toString(), new TypeToken<HashMap<String, String>>() {
+                                }.getType());
+
+                                db.insert("car", m);
+                            }
+                        }
                         Intent intent = new Intent(LoginActivity.this,
                                 MainActivity.class);
                         startActivity(intent);

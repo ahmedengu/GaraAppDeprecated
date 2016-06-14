@@ -33,7 +33,7 @@ import org.json.JSONObject;
 
 public class DispatchActivity extends AppCompatActivity {
     public static final String TAG = DispatchActivity.class.getSimpleName();
-    public static final long MAX_WAIT_TIME = 100000;
+    public static final long MAX_WAIT_TIME = 60000;
     public static final long TIME_INTERVAL = 1000;
     public static final long CANCEL_WAIT_TIME = 30000;
     public long beginTime, currentTime;
@@ -41,14 +41,18 @@ public class DispatchActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private DispatchAdapter mAdapter;
     private ProgressDialog pDialog;
+    HashMap<String, String> member;
 
+    private SQLiteHandler db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_driveres);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        db = new SQLiteHandler(getApplicationContext());
 
+        member = db.getMemberDetails();
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
         mAdapter = new DispatchAdapter(dispatchResults);
@@ -78,9 +82,8 @@ public class DispatchActivity extends AppCompatActivity {
                 Location loc2 = new Location("");
                 loc2.setLatitude(Double.parseDouble(dispatchResult.getLatitude()));
                 loc2.setLongitude(Double.parseDouble(dispatchResult.getLongitude()));
-
                 float distance = loc1.distanceTo(loc2);
-                builder.setMessage(dispatchResult.getName() + "\n" + distance + " Meter away from you\n" + "seats available" + dispatchResult.getAvailableSeats());
+                builder.setMessage(dispatchResult.getName() + "\n" + distance + " Meter away from you\n" + "seats available" + dispatchResult.getAvailableSeats()+"\n phone number:"+dispatchResult.getPhoneNumber());
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -112,7 +115,7 @@ public class DispatchActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "register Response: " + response.toString());
+                Log.d(TAG, "dispatch Response: " + response.toString());
                 hideDialog();
 
                 try {
@@ -141,16 +144,9 @@ public class DispatchActivity extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG, "Ordering Error: " + error.getMessage());
-                try {
-                    JSONObject jsonObject = new JSONObject(new String(error.networkResponse.data));
-                    Toast.makeText(getApplicationContext(),
-                            "error: " + jsonObject.getString("error"), Toast.LENGTH_LONG).show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(getApplicationContext(),
-                            "error: ", Toast.LENGTH_LONG).show();
-                }
-
+                Toast.makeText(getApplicationContext(),
+                        "error: ", Toast.LENGTH_LONG).show();
+                error.printStackTrace();
                 hideDialog();
             }
         }) {
@@ -163,6 +159,8 @@ public class DispatchActivity extends AppCompatActivity {
                 params.put("sourcelongitude", String.valueOf(currentLongitud));
                 params.put("destinationlatitude", String.valueOf(distLatitude));
                 params.put("destinationlongitude", String.valueOf(distLongitude));
+//                params.put("dist", "1000");
+                params.put("memberid", String.valueOf(distLongitude));
 
                 return params;
             }
@@ -219,7 +217,7 @@ public class DispatchActivity extends AppCompatActivity {
                     busyWaitDriverResponse(id);
                 }
             }
-        }, CANCEL_WAIT_TIME);
+        }, MAX_WAIT_TIME);
 
     }
 
@@ -244,9 +242,9 @@ public class DispatchActivity extends AppCompatActivity {
                         switch (jsonObject.get("accepted").toString()) {
                             case "null":
                                 Toast.makeText(getApplicationContext(), "no response from driver", Toast.LENGTH_LONG).show();
-                                if (System.currentTimeMillis() - beginTime <= MAX_WAIT_TIME && currentTime >= TIME_INTERVAL) {
+                                if (System.currentTimeMillis() - beginTime <= MAX_WAIT_TIME && System.currentTimeMillis() - currentTime >= TIME_INTERVAL) {
                                     currentTime = System.currentTimeMillis();
-                                    busyWaitDriverResponse(id);
+//                                    busyWaitDriverResponse(id);
                                 } else {
                                     hideDialog();
                                 }
@@ -274,9 +272,9 @@ public class DispatchActivity extends AppCompatActivity {
                     e.printStackTrace();
                     Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
-                if (System.currentTimeMillis() - beginTime <= MAX_WAIT_TIME && currentTime >= TIME_INTERVAL) {
+                if (System.currentTimeMillis() - beginTime <= MAX_WAIT_TIME && System.currentTimeMillis() - currentTime >= TIME_INTERVAL) {
                     currentTime = System.currentTimeMillis();
-                    busyWaitDriverResponse(id);
+//                    busyWaitDriverResponse(id);
                 } else {
                     hideDialog();
                 }
@@ -286,9 +284,9 @@ public class DispatchActivity extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG, "waitingDriver Error: " + error.getMessage());
-                if (System.currentTimeMillis() - beginTime <= MAX_WAIT_TIME && currentTime >= TIME_INTERVAL) {
+                if (System.currentTimeMillis() - beginTime <= MAX_WAIT_TIME && System.currentTimeMillis() - currentTime >= TIME_INTERVAL) {
                     currentTime = System.currentTimeMillis();
-                    busyWaitDriverResponse(id);
+//                    busyWaitDriverResponse(id);
                 } else {
                     hideDialog();
                 }
@@ -315,7 +313,7 @@ public class DispatchActivity extends AppCompatActivity {
                         jsonObject.getString("DistLongitude"),
                         jsonObject.getString("carModelID"),
                         jsonObject.getString("availableSeats"),
-                        jsonObject.getString("frontPic"), jsonObject.getString("carid")
+                        jsonObject.getString("frontPic"), jsonObject.getString("carid"),jsonObject.getString("phoneNumber")
                 );
                 dispatchResults.add(result);
             }

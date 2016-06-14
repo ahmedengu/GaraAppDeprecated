@@ -10,5 +10,7 @@ public class APILinks {
     public static final String MEMBER = DOMAIN + "/api/v1/member";
     public static final String DISPATCH = DOMAIN + "/api/v1/dispatch";
     public static final String RIDE = DOMAIN + "/api/v1/ride";
+    public static final String DRIVER = DOMAIN + "/api/v1/driver";
+    public static final String CAR = DOMAIN + "/api/v1/car";
 
 }

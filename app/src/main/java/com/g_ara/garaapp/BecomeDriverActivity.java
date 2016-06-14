@@ -23,15 +23,13 @@ import java.util.Map;
 /**
  * A login screen that offers login via email/password.
  */
-public class SettingsActivity extends Activity {
+public class BecomeDriverActivity extends Activity {
 
-    private static final String TAG = SettingsActivity.class.getSimpleName();
+    private static final String TAG = BecomeDriverActivity.class.getSimpleName();
 
     // UI references.
-    private EditText name;
-    private EditText password;
-
-    private View mSettingsFormView;
+    private EditText licenseNumber;
+    private View mBecomeDriverFormView;
     private ProgressDialog pDialog;
     private SessionManager session;
 
@@ -41,27 +39,20 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+        setContentView(R.layout.activity_become_driver);
         // Set up the login form.
-        mSettingsFormView = findViewById(R.id.settings_form);
-        db = new SQLiteHandler(getApplicationContext());
-        data = db.selectOne("Member");
-        session = new SessionManager(getApplicationContext());
+        mBecomeDriverFormView = findViewById(R.id.become_driver_form);
 
-        name = (EditText) mSettingsFormView.findViewById(R.id.name);
-        password = (EditText) mSettingsFormView.findViewById(R.id.password);
-        name.setText(data.get("name"));
+        licenseNumber = (EditText) mBecomeDriverFormView.findViewById(R.id.license_number);
 
-        Button mSettingsSaveButton = (Button) mSettingsFormView.findViewById(R.id.settings_save_button);
-        mSettingsSaveButton.setOnClickListener(new View.OnClickListener() {
+
+        Button mBecomeDriverButton = (Button) mBecomeDriverFormView.findViewById(R.id.become_driver_button);
+        mBecomeDriverButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                String name = SettingsActivity.this.name.getText().toString().trim();
-                String password = SettingsActivity.this.password.getText().toString().trim();
-
-                if (!name.isEmpty()&&!password.isEmpty()) {
-                    addingCar(name,password);
+                String licenseNumber = BecomeDriverActivity.this.licenseNumber.getText().toString().trim();
+                if (!licenseNumber.isEmpty()) {
+                    becomingDriver(licenseNumber);
                 } else {
                     Toast.makeText(getApplicationContext(), "Please fill all the input", Toast.LENGTH_LONG).show();
                 }
@@ -71,22 +62,25 @@ public class SettingsActivity extends Activity {
         pDialog = new ProgressDialog(this);
         pDialog.setCancelable(false);
         // SQLite database handler
+        db = new SQLiteHandler(getApplicationContext());
+        data = db.getMemberDetails();
+        session = new SessionManager(getApplicationContext());
 
     }
 
-    private void addingCar(final String name, final String password) {
+    private void becomingDriver(final String licenseNumber) {
         // Tag used to cancel the request
-        String tag_string_req = "req_Settings";
+        String tag_string_req = "req_becomeDriver";
 
-        pDialog.setMessage("Settings ...");
+        pDialog.setMessage("becomeDriver ...");
         showDialog();
 
-        StringRequest strReq = new StringRequest(Request.Method.PUT,
-                APILinks.MEMBER+"/"+data.get("ID").toString(), new Response.Listener<String>() {
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+                APILinks.DRIVER, new Response.Listener<String>() {
 
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "Settings Response: " + response.toString());
+                Log.d(TAG, "becomeDriver Response: " + response.toString());
                 hideDialog();
 
                 try {
@@ -99,9 +93,9 @@ public class SettingsActivity extends Activity {
                         session.setLogin(false);
 
                         db.deleteAll();
-                        Toast.makeText(getApplicationContext(), "logging out for data update", Toast.LENGTH_LONG).show();
 
-                        Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
+                        // Launching the login activity
+                        Intent intent = new Intent(BecomeDriverActivity.this, LoginActivity.class);
                         startActivity(intent);
                         finish();
 
@@ -111,7 +105,7 @@ public class SettingsActivity extends Activity {
                         Toast.makeText(getApplicationContext(),
                                 "error" + errorMsg, Toast.LENGTH_LONG).show();
                     }
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     // JSON error
                     e.printStackTrace();
                     Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -122,7 +116,7 @@ public class SettingsActivity extends Activity {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Settings Error: " + error.getMessage());
+                Log.e(TAG, "becomeDriver Error: " + error.getMessage());
                 hideDialog();
             }
         }) {
@@ -131,8 +125,10 @@ public class SettingsActivity extends Activity {
             protected Map<String, String> getParams() {
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("name", name);
-                params.put("password", password);
+                params.put("licenseNumber", licenseNumber);
+                params.put("memberID", data.get("memberID"));
+                params.put("licensePic", "");
+                params.put("identyCardPic", "");
 
                 return params;
             }

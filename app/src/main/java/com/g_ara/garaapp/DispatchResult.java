@@ -5,7 +5,7 @@ package com.g_ara.garaapp;
  */
 
 public class DispatchResult {
-    private String ID, name, username, pic, longitude, latitude, DistLatitude, DistLongitude, carModelID, availableSeats, frontPic, carid;
+    private String ID, name, username, pic, longitude, latitude, DistLatitude, DistLongitude, carModelID, availableSeats, frontPic, carid,phoneNumber;
 
     public DispatchResult() {
     }
@@ -15,7 +15,7 @@ public class DispatchResult {
         pic = "http://www.g-ara.com/assets/images/team/2.jpg";
     }
 
-    public DispatchResult(String ID, String name, String username, String pic, String longitude, String latitude, String distLatitude, String distLongitude, String carModelID, String availableSeats, String frontPic, String carid) {
+    public DispatchResult(String ID, String name, String username, String pic, String longitude, String latitude, String distLatitude, String distLongitude, String carModelID, String availableSeats, String frontPic, String carid,String phoneNumber) {
         this.ID = ID;
         this.name = name;
         this.username = username;
@@ -28,6 +28,8 @@ public class DispatchResult {
         this.availableSeats = availableSeats;
         this.frontPic = frontPic;
         this.carid = carid;
+        this.phoneNumber = phoneNumber;
+
         if (this.pic.equals("null")) this.pic = "http://www.g-ara.com/assets/images/team/2.jpg";
 
     }
@@ -126,5 +128,13 @@ public class DispatchResult {
 
     public void setCarid(String carid) {
         this.carid = carid;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }

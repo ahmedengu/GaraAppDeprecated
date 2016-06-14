@@ -96,7 +96,13 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public void deleteAll() {
+        // Drop older table if existed
+        deleteTable(MEMBER);
+        deleteTable(DRIVER);
+        deleteTable(CAR);
 
+    }
     public void addMember(Map<String, String> data) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -206,11 +212,12 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             while (cursor.moveToNext()) {
                 if (cursor.getCount() > 0) {
                     String[] columnNames = cursor.getColumnNames();
+                    HashMap<String, String> stringStringHashMap = new HashMap<>();
                     for (int i = 0; i < columnNames.length; i++) {
-                        HashMap<String, String> stringStringHashMap = new HashMap<>();
                         stringStringHashMap.put(columnNames[i], cursor.getString(i));
-                        list.add(stringStringHashMap);
                     }
+                    list.add(stringStringHashMap);
+
                 }
             }
 
@@ -298,7 +305,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void dropTable(String Table) {
+    public void deleteTable(String Table) {
         try {
             SQLiteDatabase db = this.getWritableDatabase();
             // Delete All Rows

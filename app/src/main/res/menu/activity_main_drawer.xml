@@ -4,19 +4,16 @@
     <item
             android:id="@+id/menu_become_a_driver"
             android:title="@string/become_a_driver"
-            android:visible="true"
             />
 
     <item
             android:id="@+id/menu_item_driver_area"
             android:title="@string/driver_area"
-            android:visible="false"
             />
 
     <item
             android:id="@+id/menu_add_car"
             android:title="@string/add_car"
-            android:visible="false"
             />
     <item
             android:id="@+id/nav_settings"

@@ -44,6 +44,9 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.MyViewHolder> {
     public void onBindViewHolder(MyViewHolder holder, int position) {
         Car car = dispatchResults.get(position);
         holder.plateNumber.setText(car.getPlateNumber());
+        if(car.getFrontPic()==null)
+            new ImageLoadTask("https://cdn3.iconfinder.com/data/icons/car-icons-front-views/480/Sports_Car_Front_View-512.png", holder.frontPIC).execute();
+        else
         new ImageLoadTask(car.getFrontPic(), holder.frontPIC).execute();
 
     }

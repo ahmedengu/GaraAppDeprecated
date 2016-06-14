@@ -184,4 +184,9 @@
     <string name="logout">Logout</string>
     <string name="driver_area">Driver Area</string>
     <string name="add_car">Add car</string>
+    <string name="plate_number">plate number</string>
+    <string name="license_number">license number</string>
+    <string name="account_information">account information</string>
+    <string name="save">save</string>
+    <string name="wait_passangers">Wait for Passengers</string>
 </resources>
