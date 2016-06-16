@@ -1,4 +1,4 @@
-package com.g_ara.garaapp;
+package com.g_ara.garaapp.helper;
 
 /**
  * Created by ahmedengu on 6/13/2016.
@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import com.g_ara.garaapp.R;
+import com.g_ara.garaapp.model.DispatchResult;
 
 import java.util.List;
 

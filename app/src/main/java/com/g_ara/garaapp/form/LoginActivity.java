@@ -1,4 +1,4 @@
-package com.g_ara.garaapp;
+package com.g_ara.garaapp.form;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -10,12 +10,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 
+import com.g_ara.garaapp.*;
+import com.g_ara.garaapp.helper.APILinks;
+import com.g_ara.garaapp.helper.AppController;
+import com.g_ara.garaapp.helper.SessionManager;
+import com.g_ara.garaapp.model.SQLiteHandler;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.json.JSONArray;

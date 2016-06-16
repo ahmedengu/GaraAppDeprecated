@@ -1,4 +1,4 @@
-package com.g_ara.garaapp;
+package com.g_ara.garaapp.form;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -13,6 +13,11 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.g_ara.garaapp.helper.APILinks;
+import com.g_ara.garaapp.helper.AppController;
+import com.g_ara.garaapp.R;
+import com.g_ara.garaapp.helper.SessionManager;
+import com.g_ara.garaapp.model.SQLiteHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,15 +28,15 @@ import java.util.Map;
 /**
  * A login screen that offers login via email/password.
  */
-public class AddCarActivity extends Activity {
+public class SettingsActivity extends Activity {
 
-    private static final String TAG = AddCarActivity.class.getSimpleName();
+    private static final String TAG = SettingsActivity.class.getSimpleName();
 
     // UI references.
-    private EditText licenseNumber;
-    private EditText PlateNumber;
+    private EditText name;
+    private EditText password;
 
-    private View mAddCarFormView;
+    private View mSettingsFormView;
     private ProgressDialog pDialog;
     private SessionManager session;
 
@@ -41,24 +46,27 @@ public class AddCarActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_car);
+        setContentView(R.layout.activity_settings);
         // Set up the login form.
-        mAddCarFormView = findViewById(R.id.add_car_form);
+        mSettingsFormView = findViewById(R.id.settings_form);
+        db = new SQLiteHandler(getApplicationContext());
+        data = db.selectOne("Member");
+        session = new SessionManager(getApplicationContext());
 
-        licenseNumber = (EditText) mAddCarFormView.findViewById(R.id.license_number);
-        PlateNumber = (EditText) mAddCarFormView.findViewById(R.id.plate_number);
+        name = (EditText) mSettingsFormView.findViewById(R.id.name);
+        password = (EditText) mSettingsFormView.findViewById(R.id.password);
+        name.setText(data.get("name"));
 
-
-        Button mAddCarButton = (Button) mAddCarFormView.findViewById(R.id.add_car_button);
-        mAddCarButton.setOnClickListener(new View.OnClickListener() {
+        Button mSettingsSaveButton = (Button) mSettingsFormView.findViewById(R.id.settings_save_button);
+        mSettingsSaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                String licenseNumber = AddCarActivity.this.licenseNumber.getText().toString().trim();
-                String PlateNumber = AddCarActivity.this.PlateNumber.getText().toString().trim();
+                String name = SettingsActivity.this.name.getText().toString().trim();
+                String password = SettingsActivity.this.password.getText().toString().trim();
 
-                if (!licenseNumber.isEmpty()&&!PlateNumber.isEmpty()) {
-                    addingCar(licenseNumber,PlateNumber);
+                if (!name.isEmpty()&&!password.isEmpty()) {
+                    addingCar(name,password);
                 } else {
                     Toast.makeText(getApplicationContext(), "Please fill all the input", Toast.LENGTH_LONG).show();
                 }
@@ -68,25 +76,22 @@ public class AddCarActivity extends Activity {
         pDialog = new ProgressDialog(this);
         pDialog.setCancelable(false);
         // SQLite database handler
-        db = new SQLiteHandler(getApplicationContext());
-        data = db.selectOne("Driver");
-        session = new SessionManager(getApplicationContext());
 
     }
 
-    private void addingCar(final String licenseNumber, final String PlateNumber) {
+    private void addingCar(final String name, final String password) {
         // Tag used to cancel the request
-        String tag_string_req = "req_AddCar";
+        String tag_string_req = "req_Settings";
 
-        pDialog.setMessage("AddCar ...");
+        pDialog.setMessage("Settings ...");
         showDialog();
 
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                APILinks.CAR, new Response.Listener<String>() {
+        StringRequest strReq = new StringRequest(Request.Method.PUT,
+                APILinks.MEMBER+"/"+data.get("ID").toString(), new Response.Listener<String>() {
 
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "AddCar Response: " + response.toString());
+                Log.d(TAG, "Settings Response: " + response.toString());
                 hideDialog();
 
                 try {
@@ -101,7 +106,7 @@ public class AddCarActivity extends Activity {
                         db.deleteAll();
                         Toast.makeText(getApplicationContext(), "logging out for data update", Toast.LENGTH_LONG).show();
 
-                        Intent intent = new Intent(AddCarActivity.this, LoginActivity.class);
+                        Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
                         startActivity(intent);
                         finish();
 
@@ -122,7 +127,7 @@ public class AddCarActivity extends Activity {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "AddCar Error: " + error.getMessage());
+                Log.e(TAG, "Settings Error: " + error.getMessage());
                 hideDialog();
             }
         }) {
@@ -131,10 +136,8 @@ public class AddCarActivity extends Activity {
             protected Map<String, String> getParams() {
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("licenseNumber", licenseNumber);
-                params.put("plateNumber", PlateNumber);
-                params.put("carModelID", "1");
-                params.put("driverID", data.get("driverID"));
+                params.put("name", name);
+                params.put("password", password);
 
                 return params;
             }

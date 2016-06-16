@@ -1,4 +1,4 @@
-package com.g_ara.garaapp;
+package com.g_ara.garaapp.model;
 
 /**
  * Created by ahmedengu on 6/13/2016.

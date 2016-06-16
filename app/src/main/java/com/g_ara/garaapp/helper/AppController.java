@@ -1,4 +1,4 @@
-package com.g_ara.garaapp;
+package com.g_ara.garaapp.helper;
 
 /**
  * Created by ahmedengu.

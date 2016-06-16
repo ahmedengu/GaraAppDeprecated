@@ -1,4 +1,4 @@
-package com.g_ara.garaapp;
+package com.g_ara.garaapp.model;
 
 
 import android.content.ContentValues;
